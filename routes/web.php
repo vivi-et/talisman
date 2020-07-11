@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 */
 // /app/ 으로 시작하는 주소들
 
+// Route::get('/test', 'AdminController@test');
+
 // Route::post('app/create_user', 'AdminController@addUser');
 Route::prefix('app')->middleware([AdminCheck::class])->group(function () {
   //Tag CRUD

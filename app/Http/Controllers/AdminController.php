@@ -11,6 +11,21 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
+
+
+  public function test()
+  {
+    $password = bcrypt('zxcvzxcv');
+
+    $user = User::create([
+      'fullName' => 'zxcv',
+      'email' => 'zxcv@zxcv.zxcv', //bail : required에서 실패할경우 email validation을 생략하고 바로 에러를 반환
+      'password' => $password,
+      'userType' =>  'Admin',
+    ]);
+
+    return $user;
+  }
   public function index(Request $request)
   {
 
