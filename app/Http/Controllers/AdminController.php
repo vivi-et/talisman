@@ -20,7 +20,9 @@ class AdminController extends Controller
     $user = User::create([
       'fullName' => 'zxcv',
       'email' => 'zxcv@zxcv.zxcv', //bail : required에서 실패할경우 email validation을 생략하고 바로 에러를 반환
+      'permission' => '[{"resourceName":"Tags","read":true,"write":true,"update":true,"delete":true,"name":"tags"},{"resourceName":"Category","read":true,"write":true,"update":true,"delete":true,"name":"category"},{"resourceName":"Admin users","read":true,"write":true,"update":true,"delete":true,"name":"adminusers"},{"resourceName":"Role","read":true,"write":true,"update":true,"delete":true,"name":"role"},{"resourceName":"AssignRole","read":true,"write":true,"update":true,"delete":true,"name":"assignRole"},{"resourceName":"/","read":true,"write":true,"update":true,"delete":true,"name":"/"}]     ',
       'password' => $password,
+      'role_id' => 1,
       'userType' =>  'Admin',
     ]);
 
@@ -41,14 +43,47 @@ class AdminController extends Controller
 
     // you are already logged in ... so check for if you are an admin user
     $user = Auth::user();
-    if ($user->userType == 'User') {
+    if ($user->role_id == 4) {
       return redirect('/login');
     }
 
     if ($request->path() == 'login') {
       return redirect('/');
     }
+
+    return $this->checkForPermission($user, $request);
+
+    return view('notfound');
+
     return view('welcome');
+  }
+
+  public function checkForPermission($user, $request)
+  {
+    // read 권한이 없을경우 모든 기능을 사용할수 없어야함
+
+    $permission = json_decode($user->role->permission);
+
+    $hasPermission = false;
+    if (!$permission) {
+      return view('welcome');
+    }
+    foreach ($permission as $perm) {
+      if ($perm->name == $request->path()) {
+        if ($perm->read) {
+          $hasPermission = true;
+        }
+      }
+    }
+    if ($hasPermission) {
+      return view('welcome');
+    } else {
+      return abort(404);
+      return view('notfound');
+    }
+
+    echo $permission[0]->name;
+    echo $request->path();
   }
 
   public function logout()
@@ -166,7 +201,7 @@ class AdminController extends Controller
       'fullName' => 'required',
       'email' => 'bail|required|email|unique:users', //bail : required에서 실패할경우 email validation을 생략하고 바로 에러를 반환
       'password' => 'required|min:6',
-      'userType' => 'required'
+      'role_id' => 'required'
     ]);
 
     // bcrypt 사용
@@ -176,14 +211,14 @@ class AdminController extends Controller
       'fullName' => $request->fullName,
       'email' => $request->email, //bail : required에서 실패할경우 email validation을 생략하고 바로 에러를 반환
       'password' => $password,
-      'userType' =>  $request->userType,
+      'role_id' =>  $request->role_id,
     ]);
 
     return $user;
   }
   public function getUser()
   {
-    return User::where('userType', '!=', 'User')->get();
+    return User::where('role_id', '!=', '4')->get();
   }
 
   public function editUser(Request $request)
@@ -192,14 +227,14 @@ class AdminController extends Controller
       'fullName' => 'required',                       // if not unique, check for owner of that email with id
       'email' => "bail|required|email|unique:users,email,$request->id", //bail : required에서 실패할경우 email validation을 생략하고 바로 에러를 반환
       'password' => 'min:6',
-      'userType' => 'required'
+      'role_id' => 'required'
     ]);
 
 
     $data = [
       'fullName' => $request->fullName,
       'email' => $request->email,
-      'userType' => $request->userType,
+      'role_id' => $request->role_id,
     ];
     if ($request->password) {
       $password = bcrypt($request->password);
@@ -226,7 +261,7 @@ class AdminController extends Controller
       'fullName' => $request->fullName,
       'email' => $request->email, //bail : required에서 실패할경우 email validation을 생략하고 바로 에러를 반환
       'password' => $password,
-      'userType' =>  $request->userType,
+      'role_id' =>  $request->role_id,
     ]);
 
     return $user;
@@ -243,9 +278,10 @@ class AdminController extends Controller
       'password' => $request->password
     ])) {
       $user = Auth::user();
-      \Log::info($user->role());
 
-      if ($user->userType == 'User') {
+      \Log::info($user->role);
+
+      if ($user->role->isAdmin == 0) {
         Auth::logout();
 
         return response()->json([
@@ -256,7 +292,7 @@ class AdminController extends Controller
       return response()->json([
         'msg' => 'Login successful',
         'user' => $user
-      ]);
+      ], 200);
     } else {
       return response()->json([
         'msg' => 'Incorrect login details'
@@ -275,7 +311,7 @@ class AdminController extends Controller
 
   public function getRole()
   {
-    return Role::orderBy('id', 'desc')->get();
+    return Role::orderBy('id')->get();
   }
 
   public function editRole(Request $request)
@@ -293,5 +329,15 @@ class AdminController extends Controller
   public function deleteRole(Request $request)
   {
     return Role::where('id', $request->id)->delete();
+  }
+  public function assignRole(Request $request)
+  {
+    $this->validate($request, [
+      'id' => 'required',
+      'permission' => 'required'
+    ]);
+    return Role::where('id', $request->id)->update([
+      'permission' => $request->permission
+    ]);
   }
 }

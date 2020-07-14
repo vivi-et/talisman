@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Talisman</title>
+    <title>Page is not found</title>
 
     <link rel="stylesheet" href="/css/grid.min.css">
     <link rel="stylesheet" href="/css/all.css">
@@ -21,15 +21,7 @@
   </head>
 
   <body>
-    <div id="app">
-      @if(Auth::check())
-      {{-- props = :user 같이 component를 통해 보내는 데이터 --}}
-      <mainapp :user="{{ Auth::user() }}" :permission="{{ Auth::user()->role->permission }}"></mainapp>
-      @else
-      <mainapp :user="false"></mainapp>
-      @endif
-    </div>
+    <h1>The Page you are looking for is not found</h1>
   </body>
-  <script src="{{ mix('/js/app.js') }}"></script>
 
 </html>

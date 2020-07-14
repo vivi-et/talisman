@@ -6,7 +6,7 @@
         <div class="_1adminOverveiw_table_recent _box_shadow _border_radious _mar_b30 _p20">
           <p class="_title0">
             Tags
-            <Button @click="addModal=true">
+            <Button @click="addModal=true" v-if="isWritePermitted">
               <Icon type="md-add" />Add tag
             </Button>
           </p>
@@ -33,6 +33,7 @@
                     type="info"
                     size="small"
                     @click="showEditModal(tag, i)"
+                    v-if="isUpdatePermitted"
                   >Edit</Button>
                   <Button
                     class="_btn _action_btn make_btn1"
@@ -40,6 +41,7 @@
                     size="small"
                     @click="showDeletingModal(tag, i)"
                     :loading="tag.isDeleting"
+                    v-if="isDeletePermitted"
                   >Delete</Button>
                 </td>
               </tr>
@@ -186,8 +188,7 @@ export default {
         isDeleted: false
       };
       this.$store.commit("setDeleteModalObj", deleteModalObj);
-    },
-
+    }
   },
 
   async created() {
@@ -209,8 +210,7 @@ export default {
       console.log(obj);
 
       if (obj.isDeleted) {
-        this.tags.splice(obj.deleteIndex-1, 1);
-
+        this.tags.splice(obj.deleteIndex - 1, 1);
       }
     }
   }

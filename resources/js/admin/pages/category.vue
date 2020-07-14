@@ -6,7 +6,7 @@
         <div class="_1adminOverveiw_table_recent _box_shadow _border_radious _mar_b30 _p20">
           <p class="_title0">
             Category
-            <Button @click="addModal=true">
+            <Button @click="addModal=true" v-if="isWritePermitted">
               <Icon type="md-add" />Add Category
             </Button>
           </p>
@@ -37,6 +37,7 @@
                     type="info"
                     size="small"
                     @click="showEditModal(category, i)"
+                    v-if="isUpdatePermitted"
                   >Edit</Button>
                   <Button
                     class="_btn _action_btn make_btn1"
@@ -44,6 +45,7 @@
                     size="small"
                     @click="showDeletingModal(category, i)"
                     :loading="category.isDeleting"
+                    v-if="isDeletePermitted"
                   >Delete</Button>
                 </td>
               </tr>

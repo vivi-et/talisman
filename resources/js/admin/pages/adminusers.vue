@@ -6,7 +6,7 @@
         <div class="_1adminOverveiw_table_recent _box_shadow _border_radious _mar_b30 _p20">
           <p class="_title0">
             Tags
-            <Button @click="addModal=true">
+            <Button @click="addModal=true" v-if="isWritePermitted">
               <Icon type="md-add" />Add admin
             </Button>
           </p>
@@ -37,6 +37,7 @@
                     type="info"
                     size="small"
                     @click="showEditModal(user, i)"
+                    v-if="isUpdatePermitted"
                   >Edit</Button>
                   <Button
                     class="_btn _action_btn make_btn1"
@@ -44,6 +45,7 @@
                     size="small"
                     @click="showDeletingModal(user, i)"
                     :loading="user.isDeleting"
+                    v-if="isDeletePermitted"
                   >Delete</Button>
                 </td>
               </tr>
@@ -64,9 +66,13 @@
             <Input type="password" v-model="data.password" placeholder="Password" />
           </div>
           <div class="space">
-            <Select v-model="data.userType" placeholder="Select admin type">
-              <Option value="Admin">Admin</Option>
-              <Option value="Editor">Editor</Option>
+            <Select v-model="data.role_id" placeholder="Select admin type">
+              <Option
+                :value="r.id"
+                v-for="(r, i) in roles"
+                :key="i"
+                v-if="roles.length"
+              >{{r.roleName}}</Option>
             </Select>
           </div>
           <div slot="footer">
@@ -92,9 +98,13 @@
             <Input type="password" v-model="editData.password" placeholder="Password" />
           </div>
           <div class="space">
-            <Select v-model="editData.userType" placeholder="Select admin type">
-              <Option value="Admin">Admin</Option>
-              <Option value="Editor">Editor</Option>
+            <Select v-model="editData.role_id" placeholder="Select admin type">
+              <Option
+                :value="r.id"
+                v-for="(r, i) in roles"
+                :key="i"
+                v-if="roles.length"
+              >{{r.roleName}}</Option>
             </Select>
           </div>
 
@@ -148,7 +158,7 @@ export default {
         fullName: "",
         email: "",
         password: "",
-        userType: ""
+        role_id: ""
       },
       addModal: false,
       editModal: false,
@@ -164,7 +174,8 @@ export default {
       showDeleteModal: false,
       isDeleting: false,
       deleteItem: {},
-      deleteIndex: -1
+      deleteIndex: -1,
+      roles: []
     };
   },
   methods: {
@@ -174,12 +185,11 @@ export default {
       if (this.data.email.trim() == "") return this.error("Email is required");
       if (this.data.password.trim() == "")
         return this.error("Password is required");
-      if (this.data.fullName.trim() == "")
-        return this.error("User type is required");
+      if (!this.data.role_id) return this.error("Usertype is required");
 
       const res = await this.callApi("post", "/app/create_user", this.data);
       if (res.status == 201) {
-        this.tags.unshift(res.data); // tags[]에 역순으로 삽입
+        this.users.unshift(res.data); // tags[]에 역순으로 삽입
         this.success("Admin has been added successfully");
         this.addModal = false;
         this.data.tagName = ""; // 이후 tagName 초기화
@@ -198,8 +208,7 @@ export default {
         return this.error("Full name is required");
       if (this.editData.email.trim() == "")
         return this.error("Email is required");
-      if (this.editData.fullName.trim() == "")
-        return this.error("User type is required");
+      if (!this.editData.role_id) return this.error("Usertype is required");
       const res = await this.callApi("post", "/app/edit_user", this.editData);
       if (res.status == 200) {
         this.users[this.index] = this.editData;
@@ -245,9 +254,19 @@ export default {
   },
 
   async created() {
-    const res = await this.callApi("get", "/app/get_users");
+    const [res, resRole] = await Promise.all([
+      this.callApi("get", "app/get_users"),
+      this.callApi("get", "app/get_roles")
+    ]);
+
     if ((res.status = 200)) {
       this.users = res.data;
+    } else {
+      this.swr();
+    }
+
+    if ((resRole.status = 200)) {
+      this.roles = resRole.data;
     } else {
       this.swr();
     }

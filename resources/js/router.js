@@ -16,6 +16,7 @@ import adminusers from './admin/pages/adminusers.vue';
 
 import login from './admin/pages/login';
 import role from './admin/pages/role';
+import assignRole from './admin/pages/assignRole';
 
 Vue.use(Router);
 
@@ -24,17 +25,19 @@ const routes = [
   {
     path: '/',
     component: home,
-
+    name: 'home'
   },
 
   {
     path: '/tags',
     component: tags,
+    name: 'tags'
   },
 
   {
     path: '/category',
     component: category,
+    name: 'category'
   },
   {
     path: '/testvuex',
@@ -43,16 +46,26 @@ const routes = [
   {
     path: '/adminusers',
     component: adminusers,
+    name: 'adminusers'
   },
 
   {
     path: '/login',
     component: login,
+    name: 'login'
   },
 
   {
     path: '/role',
     component: role,
+    name: 'role'
+  },
+
+
+  {
+    path: '/assignRole',
+    component: assignRole,
+    name: 'assignRole'
   },
 
 

@@ -18,12 +18,17 @@
           <!--~~~ MENU LIST ~~~~~~-->
           <div class="_1side_menu_list">
             <ul class="_1side_menu_list_ul">
-              <li>
-                <router-link to="/">
-                  <Icon type="ios-speedometer" />Dashboard
+              <li
+                v-for="(menuItem, i) in permission"
+                :key="i"
+                v-if="permission.length && menuItem.read "
+              >
+                <router-link :to="menuItem.name">
+                  <Icon type="ios-speedometer" />
+                  {{ menuItem.resourceName }}
                 </router-link>
               </li>
-              <li>
+              <!-- <li>
                 <router-link to="/tags">
                   <Icon type="ios-pricetag" />Tags
                 </router-link>
@@ -43,6 +48,12 @@
                   <Icon type="ios-apps" />Role Management
                 </router-link>
               </li>
+              <li>
+                <router-link to="/assignRole">
+                  <Icon type="ios-apps" />Assign Role
+                </router-link>
+              </li>-->
+
               <li>
                 <a href="/logout">
                   <Icon type="ios-apps" />Logout
@@ -77,15 +88,17 @@
 
 <script>
 export default {
-  props: ["user"],
+  props: ["user", "permission"],
   data() {
     return {
       isLoggedIn: false
     };
   },
   created() {
-    this.$store.commit("updateUser", this.user);
-    console.log(this.user);
+    this.$store.commit("setUpdateUser", this.user);
+    console.log(this.permission);
+    this.$store.commit("setUserPermission", this.permission);
+    // console.log(this.user);
   }
 };
 </script>
